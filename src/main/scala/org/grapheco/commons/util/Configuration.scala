@@ -35,6 +35,33 @@ trait Configuration {
   */
 class ConfigurationEx(conf: Configuration) extends Logging {
 
+  def this(props: Properties) = {
+    this(new Configuration {
+      override def getRaw(name: String): Option[String] =
+        if (props.containsKey(name))
+          Some(props.getProperty(name))
+        else
+          None
+    });
+  }
+
+  def this(propsFile: File) = {
+    this({
+      val props = new Properties()
+      val fis = new FileInputStream(propsFile)
+      props.load(fis)
+      fis.close()
+      props
+    });
+  }
+
+  def this(props: Map[String, String]) = {
+    this(new Configuration {
+      override def getRaw(name: String): Option[String] =
+        props.get(name)
+    });
+  }
+
   trait AnyValue {
     protected def safeConvert[T](convert: (String) => T)(implicit m: Manifest[T]): T;
 
@@ -70,38 +97,37 @@ class ConfigurationEx(conf: Configuration) extends Logging {
       }
     }
 
-    def withDefault(defaultValue: Any): AnyValue = new ConfigValue(key, maybeValue) {
-      override def safeConvert[T](convert: (String) => T)(implicit m: Manifest[T]): T = {
-        if (maybeValue.isEmpty) {
-          if (logger.isDebugEnabled)
-            logger.debug(s"no value set for $key, using default: $defaultValue")
-          defaultValue.asInstanceOf[T]
-        }
-        else {
-          super.safeConvert(convert)
+    def withDefault(defaultValue: Any): ConfigValue = {
+      val source = this;
+      new ConfigValue(key, maybeValue) {
+        override def safeConvert[T](convert: (String) => T)(implicit m: Manifest[T]): T = {
+          if (maybeValue.isEmpty) {
+            if (logger.isDebugEnabled)
+              logger.debug(s"no value set for $key, using default: $defaultValue")
+            defaultValue.asInstanceOf[T]
+          }
+          else {
+            source.safeConvert(convert)
+          }
         }
       }
     }
-  }
 
-  def this(props: Properties) = {
-    this(new Configuration {
-      override def getRaw(name: String): Option[String] =
-        if (props.containsKey(name))
-          Some(props.getProperty(name))
-        else
-          None
-    });
-  }
-
-  def this(propsFile: File) = {
-    this({
-      val props = new Properties()
-      val fis = new FileInputStream(propsFile)
-      props.load(fis)
-      fis.close()
-      props
-    });
+    def withOptions[T](options: Map[String, T]): ConfigValue = {
+      val source = this;
+      new ConfigValue(key, maybeValue) {
+        override def safeConvert[T](convert: (String) => T)(implicit m: Manifest[T]): T = {
+          {
+            if (maybeValue.isDefined) {
+              options(maybeValue.get.toLowerCase).asInstanceOf[T]
+            }
+            else {
+              source.safeConvert(convert)
+            }
+          }
+        }
+      }
+    }
   }
 
   def get(key: String): ConfigValue = {

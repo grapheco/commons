@@ -7,7 +7,7 @@ import org.apache.commons.codec.binary.Base64
 /**
   * Created by bluejoe on 2020/2/7.
   */
-object StreamUtils {
+object IOStreamUtils {
   def serializeObject(any: Any): Array[Byte] = {
     val baos = new ByteArrayOutputStream();
     val oos = new ObjectOutputStream(baos)

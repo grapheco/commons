@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 
 import org.apache.commons.io.IOUtils
 import org.grapheco.commons.util.Profiler._
-import org.grapheco.commons.util.{Profiler, StreamUtils}
+import org.grapheco.commons.util.{Profiler, IOStreamUtils}
 import org.junit.Test
 
 /**
@@ -21,7 +21,7 @@ class IOTimeCostTest {
       bytes.toArray
     }
     val bs2 = timing(true, 10) {
-      StreamUtils.serializeObject(bytes)
+      IOStreamUtils.serializeObject(bytes)
     }
 
     println(bs2.length)
