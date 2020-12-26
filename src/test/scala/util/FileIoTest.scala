@@ -32,12 +32,14 @@ class FileIoTest {
       println(lines.map(_.length).sum)
     }
 
+    println
     println("using Source.fromFile() with larger buffer")
     Profiler.timing() {
       val lines = Source.fromFile(file, 10 * 1024 * 1024).getLines()
       println(lines.map(_.length).sum)
     }
 
+    println
     println("using Source.fromInputStream()")
     Profiler.timing() {
       val fis = new BufferedInputStream(new FileInputStream(file))
@@ -46,6 +48,7 @@ class FileIoTest {
       fis.close()
     }
 
+    println
     println("using Source.fromInputStream() with larger buffer")
     Profiler.timing() {
       val fis = new BufferedInputStream(new FileInputStream(file), 10 * 1024 * 1024)
@@ -54,6 +57,7 @@ class FileIoTest {
       fis.close()
     }
 
+    println
     println("using mmap")
     Profiler.timing() {
       val fc = new FileInputStream(file).getChannel
